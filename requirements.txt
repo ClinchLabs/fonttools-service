@@ -9,6 +9,6 @@ Logentries==0.17
 MarkupSafe==1.0
 olefile==0.44
 Pillow==4.0.0
-psd-tools==1.4
+psutil==5.2.0
 Werkzeug==0.12.1
 zopfli==0.1.1
