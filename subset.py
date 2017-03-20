@@ -11,6 +11,8 @@ def subsetFont(base64, subset):
     tmpInputFontName = tmpFileName(".ttf")
     tmpOutputFontName = tmpFileName(".woff")
 
+    print tmpInputFontName
+    print tmpOutputFontName
     # remove data:: from base64 string
     fontbase64 = base64.replace("data:;base64,", "")
 

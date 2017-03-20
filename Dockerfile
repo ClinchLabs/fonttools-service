@@ -8,4 +8,4 @@ RUN pip install -r requirements.txt
 
 EXPOSE 9097
 
-CMD [ "python", "server.py" ]
+CMD [ "python", "app.py" ]
