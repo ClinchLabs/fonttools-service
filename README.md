@@ -9,6 +9,12 @@ An example request will look like this
     "font": "data:;base64,AAEAAAATAQAABAAwRFNJR54SRB0AAzucAAAVdEdERUYAJgOvAAM3fAAAAB5HUE9TCzcPNwADN5wAAAA4R1NVQg4rPbcAAzfUAAADxk9TLzKhPp7JAAABuAAAAGBjbWFwKasvaAAAELQAAAQaY3Z0IA9NGKQAAB2QAAAAomZwZ21+a+VF2k6RQPCf7zsfJ0pWrDr9qJRqfPecwX97k2BOG8QrV5WUyxbhmmcz0SspE8jsvrxZsQOkKZnsHYiZJId3D5vKFPvU1ElMdA7IPS5vIMkDzejlD9AhObNWGdX7rL2sqTi9sNUMo9ljrbCVtGhYw+LXKf+RpMcAAA=="
 }
 ```
+logging is done with logentries, you can rename the `settings.example.ini` to `settings.ini` and have your logging sent to logentries.
+
+```
+[logentries]
+key=your_key
+```
 
 I included a Dockerfile which is very basic, make sure you change the exposed ports if you want to run on another port. 
 ```bash
@@ -22,7 +28,7 @@ RUN pip install -r requirements.txt
 
 EXPOSE 9097
 
-CMD [ "python", "server.py" ]
+CMD [ "python", "app.py" ]
 ```
 
 ## todo
