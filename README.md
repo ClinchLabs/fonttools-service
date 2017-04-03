@@ -1,4 +1,4 @@
-# 📝 subset-service
+# 📝 fonttools as a service
 A Flask wrapper arround Fonttools. Everyone that ever worked with subsetting knows the pain. Fonttools seems to be the best tool to work with subsetting.
 At first I wanted to create a C++ addon for node and briding python but the amount of hassle that comes with it is just to much (might do it one day). 
 
@@ -15,7 +15,17 @@ logging is done with logentries, you can rename the `settings.example.ini` to `s
 [logentries]
 key=your_key
 ```
-
+The `/health` endpoints gives a few stats 
+```
+{
+  "hostname": "falcon.local",
+  "memory": {
+    "free": "1856 MB",
+    "total": "8192 MB"
+  },
+  "uptime": "0 days"
+}
+```
 I included a Dockerfile which is very basic, make sure you change the exposed ports if you want to run on another port. 
 ```bash
 FROM python:2
