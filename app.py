@@ -11,8 +11,10 @@ log.info("starting subset service..")
 @app.route("/subset", methods=["POST"])
 def handleSubset():
     try:
+        text = request.json['text']
+        font = request.json['font']
         log.info("subsetting font..")
-        subset = subset.subsetFont(request.json['font'], request.json['text'])
+        subset = subset.subsetFont(font, text)
         return make_response(jsonify(subset), 200)
     except:
         log.warn("subsetting font went wrong", request)
@@ -32,12 +34,7 @@ def handleConvert():
 
 @app.route("/health", methods=["GET"])
 def handleHealth():
-    memory, uptime, cpu = health.getHealth()
-    return make_response(jsonify(
-        uptime=uptime,
-        cpu=cpu,
-        memory=memory
-    ), 200)
+    return make_response(jsonify(health.getHealth()), 200)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=9097)
