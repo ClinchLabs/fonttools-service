@@ -12,3 +12,4 @@ Pillow==4.0.0
 psutil==5.2.0
 Werkzeug==0.12.1
 zopfli==0.1.1
+cu2qu==1.1.1

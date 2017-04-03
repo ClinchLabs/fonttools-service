@@ -7,6 +7,6 @@ config.read('settings.ini')
 API_KEY = config.get('logentries', 'key')
 
 log = logging.getLogger('logentries')
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 
 log.addHandler(LogentriesHandler(API_KEY))
