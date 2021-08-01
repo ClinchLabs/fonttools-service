@@ -1,40 +1,36 @@
-import subset
-import convert
-import health
-from logger import log
+import subset, convert
 from flask import Flask, request, jsonify, make_response
 
 app = Flask(__name__)
 
-log.info("starting subset service..")
 
-@app.route("/subset", methods=["POST"])
-def handleSubset():
+@app.route("/fontconvert", methods=["POST"])
+def handleFontConvert():
     try:
-        text = request.json['text']
-        font = request.json['font']
-        log.info("subsetting font..")
-        subset = subset.subsetFont(font, text)
-        return make_response(jsonify(subset), 200)
-    except:
-        log.warn("subsetting font went wrong", request)
-        return make_response(jsonify(error="subsetting went wrong"), 500)
+        base64str = request.form.get('value')
+        subsetChars = request.form.get('subset')
+        is_otf = str(request.form.get('isOTF')).lower() == 'true'
+        print(subsetChars + "\n")
 
-@app.route("/convert", methods=["POST"])
-def handleConvert():
+        if is_otf:
+            base64str = convert.convert_otf_to_ttf(base64str)
+
+        res = subset.subset_font(base64str, subsetChars)
+        return make_response(jsonify(res))
+    except Exception as e:
+        print(e)
+        return make_response("Error occured")
+
+
+@app.route("/hello", methods=["GET"])
+def handleHello():
     try:
-        kind = request.json['type']
-        font = request.json['font']
-        log.info('conerting font..')
-        converted = convert.convertFont(font, kind)
-        return make_response(jsonify(converted), 200)
-    except:
-        log.warn("converting font went wrong")
-        return make_response(jsonify(error="subsetting went wrong"), 500)
+        name = request.args.get('name')
+        return make_response("hello " + name + "!\n")
+    except Exception as e:
+        print(e)
+        return make_response("The world is ending")
 
-@app.route("/health", methods=["GET"])
-def handleHealth():
-    return make_response(jsonify(health.getHealth()), 200)
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=9097)

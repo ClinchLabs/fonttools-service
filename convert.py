@@ -1,9 +1,10 @@
+import base64
+
 from fontTools import ttx
 from fontTools.ttLib import TTFont, newTable
 from fontTools.subset import Subsetter, Options, save_font
-from cu2qu.pens import Cu2QuPen
+from fontTools.pens.cu2quPen import Cu2QuPen
 from fontTools.pens.ttGlyphPen import TTGlyphPen
-from logger import log
 import uuid
 import os
 
@@ -17,49 +18,31 @@ POST_FORMAT = 2.0
 # we just flip it to clockwise
 REVERSE_DIRECTION = True
 
-def convertFont(base64, type):
-    options = Options()
 
+def convert_otf_to_ttf(base64str):
     # tmp file names
-    tmpInputFontName = tmpFileName("." + type)
-    tmpOutputTtf = tmpFileName(".ttf")
-    tmpOutputWoff = tmpFileName(".woff")
+    tmp_input_font_name = tmpFileName(".otf")
+    tmp_output_ttf = tmpFileName(".ttf")
 
-    # remove data header from base64
-    # now we have a clean input source
-    fontbase64 = base64.split(",")[1]
-    with open(tmpInputFontName, "wb") as f:
-        fontinput = f.write(fontbase64.decode('base64'))
+    with open(tmp_input_font_name, "wb") as f:
+        f.write(base64.b64decode(base64str))
         f.close()
 
     # we always work from a TTFont Object (also takes OTF)
-    font = TTFont(tmpInputFontName)
+    font = TTFont(tmp_input_font_name)
 
-    ttfOptions = Options()
-    # export the font as woff for web use
-    woffOptions = Options()
-    woffOptions.with_zopfli = True
-    woffOptions.flavor = "woff"
+    # convert the font to ttf
+    ttf_font = otf_to_ttf(font)
 
-    if type == 'otf':
-        # convert the font to ttf
-        ttfFont = otf_to_ttf(font)
-        # save font can also convert to woff!
-        save_font(ttfFont, tmpOutputTtf, ttfOptions)
-        save_font(ttfFont, tmpOutputWoff, woffOptions)
-    elif type == 'ttf':
-        save_font(font, tmpOutputTtf, ttfOptions)
-        save_font(font, tmpOutputWoff, woffOptions)
-    else:
-        return { 'error': 'please give a valid type' }
+    # save font can also convert to woff!
+    save_font(ttf_font, tmp_output_ttf, Options())
 
-    ttfBase64 = toBase64(tmpOutputTtf)
-    woffBase64 = toBase64(tmpOutputWoff)
+    ttf_base64 = toBase64(tmp_output_ttf)
 
-    #cleanup files
-    cleanUp([tmpInputFontName, tmpOutputWoff, tmpOutputTtf])
+    # cleanup files
+    cleanUp([tmp_input_font_name, tmp_output_ttf])
 
-    return { 'woff': woffBase64, 'ttf': ttfBase64 }
+    return ttf_base64
 
 def otf_to_ttf(ttFont, post_format=POST_FORMAT, **kwargs):
     assert ttFont.sfntVersion == "OTTO"
@@ -112,7 +95,8 @@ def cleanUp(files):
         os.unlink(file)
 
 def toBase64(filePath):
-    return open(filePath, "rb").read().encode("base64")
+    file_bytes = open(filePath, "rb").read()
+    return base64.b64encode(file_bytes).decode('utf8')
 
 # creates a tmp file name with uuid
 def tmpFileName(type):
