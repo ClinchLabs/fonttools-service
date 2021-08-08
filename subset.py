@@ -1,3 +1,5 @@
+import tempfile
+
 from fontTools.ttLib import TTFont
 from fontTools.subset import Subsetter, Options, save_font, parse_unicodes
 from flask import Flask, jsonify
@@ -6,50 +8,45 @@ import os
 import base64
 
 
-def tmpFileName(type):
-    return ".tmp/" + str(uuid.uuid4()) + type
+def subset_font(font_bytes: bytes, subset: str):
 
+    # tmp folder
+    with tempfile.TemporaryDirectory() as tmp:
 
-def subset_font(base64str, subset):
-    # tmp file names
-    tmpInputFontName = tmpFileName(".ttf")
-    tmpOutputFontWoff = tmpFileName(".woff")
-    tmpOutputFontWoff2 = tmpFileName(".woff2")
+        tmp_input_font_name = os.path.join(tmp, 'source.ttf')
+        tmp_output_font_woff = os.path.join(tmp, 'target.woff')
+        tmp_output_font_woff2 = os.path.join(tmp, 'target.woff2')
 
-    with open(tmpInputFontName, "wb") as f:
-        f.write(base64.b64decode(base64str))
-        f.close()
+        with open(tmp_input_font_name, "wb") as f:
+            f.write(font_bytes)
+            f.close()
 
-    # open the font with fontTools
-    font = TTFont(tmpInputFontName)
+        # open the font with fontTools
+        font = TTFont(tmp_input_font_name)
 
-    options = Options()
-    options.desubroutinize = True
+        options = Options()
+        options.desubroutinize = True
 
-    # export the font as woff for web use
-    # subsets = subset.split(",")
+        # export the font as woff for web use
+        # subsets = subset.split(",")
 
-    # print(subsets.length)
-    options.with_zopfli = True
-    options.flavor = "woff"
-    subsetter = Subsetter(options=options)
-    subsets = parse_unicodes(subset)
-    subsetter.populate(unicodes=subsets)
-    subsetter.subset(font)
-    save_font(font, tmpOutputFontWoff, options)
+        # print(subsets.length)
+        options.with_zopfli = True
+        options.flavor = "woff"
+        subsetter = Subsetter(options=options)
+        subsets = parse_unicodes(subset)
+        subsetter.populate(unicodes=subsets)
+        subsetter.subset(font)
+        save_font(font, tmp_output_font_woff, options)
 
-    subsettedFont = base64.b64encode(open(tmpOutputFontWoff, "rb").read()).decode('utf8')
+        subsettedFont = base64.b64encode(open(tmp_output_font_woff, "rb").read()).decode('utf8')
 
-    options.flavor = "woff2"
-    subsetter = Subsetter(options=options)
-    subsetter.populate(unicodes=subsets)
-    subsetter.subset(font)
-    save_font(font, tmpOutputFontWoff2, options)
+        options.flavor = "woff2"
+        subsetter = Subsetter(options=options)
+        subsetter.populate(unicodes=subsets)
+        subsetter.subset(font)
+        save_font(font, tmp_output_font_woff2, options)
 
-    subsettedFont2 = base64.b64encode(open(tmpOutputFontWoff2, "rb").read()).decode('utf8')
+        subsettedFont2 = base64.b64encode(open(tmp_output_font_woff2, "rb").read()).decode('utf8')
 
-    os.unlink(tmpOutputFontWoff)
-    os.unlink(tmpOutputFontWoff2)
-    os.unlink(tmpInputFontName)
-
-    return {"woff": subsettedFont, "woff2": subsettedFont2}
+        return {"woff": subsettedFont, "woff2": subsettedFont2}

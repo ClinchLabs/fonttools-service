@@ -1,4 +1,5 @@
 import base64
+import tempfile
 
 from fontTools import ttx
 from fontTools.ttLib import TTFont, newTable
@@ -19,30 +20,31 @@ POST_FORMAT = 2.0
 REVERSE_DIRECTION = True
 
 
-def convert_otf_to_ttf(base64str):
-    # tmp file names
-    tmp_input_font_name = tmpFileName(".otf")
-    tmp_output_ttf = tmpFileName(".ttf")
+def convert_otf_to_ttf(otf_bytes: bytes) -> bytes:
 
-    with open(tmp_input_font_name, "wb") as f:
-        f.write(base64.b64decode(base64str))
-        f.close()
+    # tmp folder
+    with tempfile.TemporaryDirectory() as tmp:
 
-    # we always work from a TTFont Object (also takes OTF)
-    font = TTFont(tmp_input_font_name)
+        tmp_input_font_name = os.path.join(tmp, 'source.otf')
+        tmp_output_ttf = os.path.join(tmp, 'target.ttf')
 
-    # convert the font to ttf
-    ttf_font = otf_to_ttf(font)
+        with open(tmp_input_font_name, "wb") as f:
+            f.write(otf_bytes)
+            f.close()
 
-    # save font can also convert to woff!
-    save_font(ttf_font, tmp_output_ttf, Options())
+        # we always work from a TTFont Object (also takes OTF)
+        font = TTFont(tmp_input_font_name)
 
-    ttf_base64 = toBase64(tmp_output_ttf)
+        # convert the font to ttf
+        ttf_font = otf_to_ttf(font)
 
-    # cleanup files
-    cleanUp([tmp_input_font_name, tmp_output_ttf])
+        # save font can also convert to woff!
+        save_font(ttf_font, tmp_output_ttf, Options())
 
-    return ttf_base64
+        ttf_bytes = open(tmp_output_ttf, "rb").read()
+
+        return ttf_bytes
+
 
 def otf_to_ttf(ttFont, post_format=POST_FORMAT, **kwargs):
     assert ttFont.sfntVersion == "OTTO"
@@ -88,16 +90,3 @@ def glyphs_to_quadratic(glyphs, max_err=MAX_ERR, reverse_direction=REVERSE_DIREC
         quadGlyphs[gname] = ttPen.glyph()
 
     return quadGlyphs
-
-#delete files
-def cleanUp(files):
-    for file in files:
-        os.unlink(file)
-
-def toBase64(filePath):
-    file_bytes = open(filePath, "rb").read()
-    return base64.b64encode(file_bytes).decode('utf8')
-
-# creates a tmp file name with uuid
-def tmpFileName(type):
-    return ".tmp/" + str(uuid.uuid4()) + type
