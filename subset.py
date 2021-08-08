@@ -2,8 +2,6 @@ import tempfile
 
 from fontTools.ttLib import TTFont
 from fontTools.subset import Subsetter, Options, save_font, parse_unicodes
-from flask import Flask, jsonify
-import uuid
 import os
 import base64
 
