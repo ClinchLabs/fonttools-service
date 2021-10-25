@@ -20,25 +20,26 @@ def subset_font(font_bytes: bytes, subset: str):
             f.close()
 
         # open the font with fontTools
-        font = TTFont(tmp_input_font_name)
 
         options = Options()
         options.desubroutinize = True
+        options.with_zopfli = True
 
         # export the font as woff for web use
         # subsets = subset.split(",")
 
-        # print(subsets.length)
-        options.with_zopfli = True
+        subsets = parse_unicodes(subset)
+
+        font = TTFont(tmp_input_font_name)
         options.flavor = "woff"
         subsetter = Subsetter(options=options)
-        subsets = parse_unicodes(subset)
         subsetter.populate(unicodes=subsets)
         subsetter.subset(font)
         save_font(font, tmp_output_font_woff, options)
 
         subsettedFont = base64.b64encode(open(tmp_output_font_woff, "rb").read()).decode('utf8')
 
+        font = TTFont(tmp_input_font_name)
         options.flavor = "woff2"
         subsetter = Subsetter(options=options)
         subsetter.populate(unicodes=subsets)
